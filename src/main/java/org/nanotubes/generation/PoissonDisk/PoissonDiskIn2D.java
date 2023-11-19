@@ -7,54 +7,56 @@ import java.util.Random;
 import static java.lang.Math.sqrt;
 
 /**
- * Класс использует алгоритм выборки частиц при помощи диска Пуассона в произвольных размерах Роберта Бридсона, а также используется алгоритм авторства Herman Tulleken
+ * класс использующий алгоритм выборки частиц при помощи диска Пуассона в произвольных размерах Роберта Бридсона, а также используется алгоритм авторства Herman Tulleken
  */
 public class PoissonDiskIn2D {
     /**
-     * Количество создающихся точек по умолчанию
-     */
-    private final static int DEFAULT_POINTS_TO_GENERATE = 10;
-    /**
-     * Максимальновозможное количеств создающихся точек
+     * максимально возможное количество создающихся точек
      */
     public final static int MAX_POINTS = 50000;
-
     /**
-     * Количество создающихся точек, в литературе k
+     * количество создающихся точек, в литературе k
      */
     private final int numberOfPoints;
     /**
-     * Точка 0 - начало координат
-     * Точка 1 - ширина и высота поля
+     * точка 0 - начало координат
      */
-    private final Vector2DDouble point0, point1;
+    private final Vector2DDouble point0,
     /**
-     * Расстояние между точками
+     * точка 1 - ширина и высота поля
+     */
+    point1;
+    /**
+     * расстояние между точками
      */
     private final Vector2DDouble dimensions;
     /**
-     * Размер ячейки, в литературе для двуменого пространства r / sqrt(2)
+     * размер ячейки, в литературе для двумерного пространства r / sqrt(2)
      */
     private final double cellSize;
     /**
-     * Минимальное растояние между частицами, в литературе - это радиус частицы r
+     * минимальное растояние между частицами, в литературе - это радиус частицы r
      */
     private final double minDist;
     /**
-     * Размеры сеетки: gridWidth - ширина сетки, gridHeight - высота сетки
+     * размеры сетки: ширина сетки
      */
-    private final int gridWidth, gridHeight;
+    private final int gridWidth,
     /**
-     * Случайное действительное число
+     * размеры сетки: высота сетки
      */
-    private static Random random = new Random();
+    gridHeight;
+    /**
+     * случайное действительное число
+     */
+    private static final Random random = new Random();
 
     /**
-     * Конструктор класса создающий новый обект PoissonDisk
-     * @param x0 координата двумерного пространства совподающая с осью абцисс декартовой системы координат в левом нижнем углу поля
-     * @param y0 координата двумерного пространства совподающая с осью оридинат декартовой системы координат в левом нижнем углу поля
-     * @param x1 координата двумерного пространства совподающая с осью абцисс декартовой системы координат в правом верхнем углу поля
-     * @param y1 координата двумерного пространства совподающая с осью ординат декартовой системы координат в правом верхнем углу поля
+     * конструктор класса
+     * @param x0 координата двумерного пространства совпадающая с осью абцисс декартовой системы координат в левом нижнем углу поля
+     * @param y0 координата двумерного пространства совпадающая с осью оридинат декартовой системы координат в левом нижнем углу поля
+     * @param x1 координата двумерного пространства совпадающая с осью абцисс декартовой системы координат в правом верхнем углу поля
+     * @param y1 координата двумерного пространства совпадающая с осью ординат декартовой системы координат в правом верхнем углу поля
      * @param minDist - минимальное расстояние между частицами равное радиусу точек
      * @param numberOfPoints количество точек
      */
@@ -71,20 +73,8 @@ public class PoissonDiskIn2D {
     }
 
     /**
-     * Конструктор класса создающий новый обект PoissonDisk по умолчанию при неизвестном количестве точек
-     * @param x0 координата двумерного пространства совподающая с осью абцисс декартовой системы координат в левом нижнем углу поля
-     * @param y0 координата двумерного пространства совподающая с осью оридинат декартовой системы координат в левом нижнем углу поля
-     * @param x1 координата двумерного пространства совподающая с осью абцисс декартовой системы координат в правом верхнем углу поля
-     * @param y1 координата двумерного пространства совподающая с осью ординат декартовой системы координат в правом верхнем углу поля
-     * @param minDist - минимальное расстояние между частицами равное радиусу точек
-     */
-    public PoissonDiskIn2D(double x0, double y0, double x1, double y1, double minDist) {
-        this(x0, y0, x1, y1, minDist, DEFAULT_POINTS_TO_GENERATE);
-    }
-
-    /**
-     * Метод создающий коллекцию точек соответствующих распределению Пуассона, при условии что их меньше MAX_POINTS
-     * @return коллекцию точек
+     * метод создающий коллекцию точек соответствующих распределению Пуассона, при условии что их меньше MAX_POINTS
+     * @return коллекция точек
      */
     public List<Vector2DDouble> ListOfPointsPoissonDisk() {
         Vector2DDouble[][] grid = new Vector2DDouble[gridWidth][gridHeight];
@@ -101,7 +91,6 @@ public class PoissonDiskIn2D {
 
         while (!activeList.isEmpty() && (pointList.size() < MAX_POINTS)) {
             int listIndex = random.nextInt(activeList.size());
-
             Vector2DDouble vector2DDouble = activeList.get(listIndex);
             boolean found = false;
 
@@ -113,18 +102,16 @@ public class PoissonDiskIn2D {
                 activeList.remove(listIndex);
             }
         }
-
         return pointList;
     }
 
     /**
-     * Метод создающий первую точку в случайом месте сетки и записывающий её в списки
+     * метод создающий первую точку в случайом месте сетки и записывающий её в списки
      * @param grid сетка
      * @param activeList еще не отобранные точки
-     * @param pointList точки состовляющие выборку по диску Пуассона
+     * @param pointList точки составляющие выборку по диску Пуассона
      */
-    private void addFirstPoint(Vector2DDouble[][] grid, List<Vector2DDouble> activeList,
-                               List<Vector2DDouble> pointList) {
+    private void addFirstPoint(Vector2DDouble[][] grid, List<Vector2DDouble> activeList, List<Vector2DDouble> pointList){
         double d = random.nextDouble();
         double xr = point0.getX() + dimensions.getX() * d;
 
@@ -141,24 +128,22 @@ public class PoissonDiskIn2D {
     }
 
     /**
-     * Метод преобразующий действительные кординаты точки в целочисленные координаты точки в сетке
+     * метод преобразующий действительные кординаты точки в целочисленные координаты точки в сетке
      * @param pointDouble действительные кординаты точки
      * @param origin действительные координаты ливого нижнего угла сетки
      * @param cellSize размер ячейки
      * @return целочисленные координаты точки в сетке
      */
-    private static Vector2DInt Vector2DDoubleToInt(Vector2DDouble pointDouble,
-                                                   Vector2DDouble origin, double cellSize)
-    {
+    private static Vector2DInt Vector2DDoubleToInt(Vector2DDouble pointDouble, Vector2DDouble origin, double cellSize){
         return new Vector2DInt((int) ((pointDouble.getX() - origin.getX()) / cellSize),
                 (int) ((pointDouble.getY() - origin.getY()) / cellSize));
     }
 
     /**
-     * Метод добавляющий заданную точку в коллекцию при условие что она не находится слишком близко к существующей точке в коллекции
+     * метод добавляющий заданную точку в коллекцию при условии что она не находится слишком близко к существующей точке в коллекции
      * @param grid сетка
-     * @param vector2DDouble новая точка, которая добавиться в коллекцию
-     * @return истину или ложь
+     * @param vector2DDouble новая точка, которая добавится в коллекцию
+     * @return истина или ложь
      */
     private boolean addNextPoint (Vector2DDouble[][] grid, Vector2DDouble vector2DDouble, List<Vector2DDouble> activeList,
                                   List<Vector2DDouble> pointList) {
@@ -195,10 +180,10 @@ public class PoissonDiskIn2D {
     }
 
     /**
-     * Метод генерирующий случайную точку в области, центром которой является заданная точка. Область генерации (кольуо) имеет минимальный внутренний радиус, внешний радиус в два раза больше минимального радиуса.
+     * метод генерирующий случайную точку в области, центром которой является заданная точка. Область генерации (кольуо) имеет минимальный внутренний радиус, внешний радиус в два раза больше минимального радиуса.
      * @param centre точка вокруг которой происходит генерация
      * @param minDist минимальное расстояие между частицами равное радиусу частицы
-     * @return случайню точку принадлежащую кольцевой области вокруг исходной точки
+     * @return случайная точка принадлежащая кольцевой области вокруг исходной точки
      */
     private static Vector2DDouble generateRandomAround(Vector2DDouble centre, double minDist) {
         double d = random.nextDouble();
@@ -212,6 +197,4 @@ public class PoissonDiskIn2D {
 
         return new Vector2DDouble(centre.getX() + newX, centre.getY() + newY);
     }
-
-
 }

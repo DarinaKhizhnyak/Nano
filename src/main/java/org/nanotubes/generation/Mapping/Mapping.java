@@ -6,43 +6,49 @@ import javafx.scene.paint.Color;
 import org.nanotubes.generation.Geom.Tube;
 import org.nanotubes.generation.Geom.Particle;
 
+/**
+ * класс отображающий частицы в окне программы
+ */
 public class Mapping {
     /**
-     * Частицы, которые необходимо отобразить
+     * частицы, которые необходимо отобразить
      */
     private final ObservableList<Particle> list;
     /**
-     * Колличество частиц
+     * колличество частиц
      */
     private final int numberOfParticle;
     /**
-     * Группа граффических объекто
+     * группа графических объектов, которые необходимо отобразить
      */
     private final Group group;
     /**
-     * Цилиндр
+     * цилиндр, который необходимо отобразить
      */
     private final Tube tube;
 
+    /**
+     * конструктор класса
+     * @param numberOfParticle число частиц
+     * @param group группа графических объектов
+     * @param tube 3D-объект цилиндр
+     * @param list список 3D-объектов - частиц
+     */
     public Mapping(int numberOfParticle, Group group, Tube tube, ObservableList<Particle> list) {
         this.numberOfParticle = numberOfParticle;
         this.group = group;
         this.list = list;
         this.tube = tube;
     }
+
+    /**
+     * метод отображающий частицы в окне программы
+     */
     public void MappingParticle() {
         group.getChildren().clear();
         group.getChildren().add(new TubeView(tube, Color.YELLOW).asNode());
         for (int i = 0; i < numberOfParticle; i++) {
             group.getChildren().add(list.get(i).getParticle());
-        }
-    }
-    public void Print() {
-        for (int i = 0; i < numberOfParticle; i++) {
-            System.out.println(i);
-            System.out.println(list.get(i).getX());
-            System.out.println(list.get(i).getY());
-            System.out.println(list.get(i).getZ());
         }
     }
 }

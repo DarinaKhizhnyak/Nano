@@ -4,60 +4,55 @@ import javafx.collections.ObservableList;
 import org.nanotubes.generation.Geom.Particle;
 import org.nanotubes.generation.Geom.Tube;
 
-import java.util.ArrayList;
-
 import static java.lang.Math.pow;
-
+import static org.nanotubes.generation.Generation.energy;
 
 /**
- * Класс, который минимизирует энергию системы частиц
+ * класс минимизирующий энергию системы частиц
  */
 public class Minimization {
-    private double COEFFICIENT = 500;
-
-    @SuppressWarnings("FieldCanBeLocal")
-    private final double ACCEPTABLE_COEFFICIENT = 0;
     /**
-     * Допустимое значение коэффициента разницы энергий
+     * коэффициент (из теории)
+     */
+    private double COEFFICIENT = 50;
+    /**
+     * допустимое значение коэффициента
      */
     @SuppressWarnings("FieldCanBeLocal")
-    private final double ACCEPTABLE_VALUE_OF_ENERGY_DIFFERENCE = 0;
+    private final double ACCEPTABLE_COEFFICIENT = 0.0000000000001;
     /**
-     * Максимальное значение для типа double
+     * допустимое значение коэффициента разницы энергий
+     */
+    @SuppressWarnings("FieldCanBeLocal")
+    private final double ACCEPTABLE_VALUE_OF_ENERGY_DIFFERENCE = 0.0000000000000000001;
+    /**
+     * максимальное значение для типа double
      */
     @SuppressWarnings("FieldCanBeLocal")
     private static final double MAX_VALUE = 1.7976931348623157E308;
-
     /**
-     * Исходные координаты частиц, выбранные с помощью распределения Пуассона
+     * исходные координаты частиц, выбранные с помощью распределения Пуассона
      */
     private final ObservableList<Particle> particles;
     /**
-     * Количество частиц
+     * количество частиц
      */
-    private final int numberOfParticle;
+    private final int numberOfParticle,
     /**
-     * Степень (из теории)
+     * степень (из теории)
      */
-    private final int degree;
+    degree;
     /**
-     * Параметры цилиндра
+     * высота цилиндра
      */
-    private final double heightTube;
-    private final double radiusTube;
+    private final double heightTube,
+    /**
+     *  радиус цилиндра
+     */
+    radiusTube;
 
     /**
-     * Массив для записи значений энергий системы на каждом шаге минимизации
-     */
-    private final ArrayList<Double> arrayEnergy = new ArrayList<>();
-    /**
-     * Массив для записи значений коэффициента координаты на каждом шаге системы
-     */
-    private final ArrayList<Double> arrayCoefficient = new ArrayList<>();
-
-
-    /**
-     * Конструктор класса Minimization создающий обект Minimization
+     * конструктор класса
      * @param particleList исходные координаты частиц, выбранные с помощью распределения Пуассона
      * @param degree степень (из теории)
      * @param tube параметры цилиндра
@@ -70,29 +65,31 @@ public class Minimization {
         radiusTube = tube.getRadius();
     }
 
+    /**
+     * метод возвращающий чатицы после минимизации энергии системы
+     * @return список частиц
+     */
     public ObservableList<Particle> minimization () {
         ObservableList<Particle> list = particles;
         double energyOld = MAX_VALUE;
         double energyNew = energyOfSystem(list);
 
-        arrayEnergy.add(energyNew);
-        arrayCoefficient.add(COEFFICIENT);
-        while (COEFFICIENT > ACCEPTABLE_COEFFICIENT && energyOld >= energyNew) {
+        int iter = 10000;
+        while (COEFFICIENT > ACCEPTABLE_COEFFICIENT && energyOld > energyNew && iter > 0) {
+            iter--;
+            System.out.println(iter);
             if (energyOld - energyNew < ACCEPTABLE_VALUE_OF_ENERGY_DIFFERENCE) {
                 COEFFICIENT = COEFFICIENT/2;
             }
             energyOld = energyNew;
             stepOfMinimization(list);
             energyNew = energyOfSystem(list);
-
-            arrayEnergy.add(energyNew);
-            arrayCoefficient.add(COEFFICIENT);
         }
         return list;
     }
 
     /**
-     * Метод возвращающий чатицы после одного шага минимизации
+     * метод возвращающий чатицы после одного шага минимизации
      * @param list частицы до минимизации
      */
     private void stepOfMinimization (ObservableList<Particle> list) {
@@ -105,18 +102,20 @@ public class Minimization {
     }
 
     /**
-     * Метод возвращающий частицу с новыми координатами, учитывая взаимодейтвие выбранной частицы с другими частицами
+     * метод возвращающий частицу с новыми координатами, учитывая взаимодейтвие выбранной частицы с другими частицами
      * @param coordinates частицы
      * @param i номер выбранной частицы
-     * @return выбранную частицу с новыми координатами
+     * @return выбранная частица с новыми координатами
      */
     private Particle newParticle(ObservableList<Particle> coordinates, int i) {
-        Particle particle3D = new Particle(coordinates.get(i).getRadius(),coordinates.get(i).getColor(),coordinates.get(i).getX(),coordinates.get(i).getY(),coordinates.get(i).getZ());
+        Particle particle3D = new Particle(coordinates.get(i).getRadius(),coordinates.get(i).getColor(),
+                coordinates.get(i).getX(),coordinates.get(i).getY(),coordinates.get(i).getZ());
         double ForceX = 0.0;
         double ForceY = 0.0;
         double ForceZ = 0.0;
         for (int j = 0; j < numberOfParticle; j++) {
-            Particle particleJ = new Particle(coordinates.get(j).getRadius(),coordinates.get(j).getColor(),coordinates.get(j).getX(),coordinates.get(j).getY(),coordinates.get(j).getZ());
+            Particle particleJ = new Particle(coordinates.get(j).getRadius(),coordinates.get(j).getColor(),
+                    coordinates.get(j).getX(),coordinates.get(j).getY(),coordinates.get(j).getZ());
             if (i != j) {
                 ForceX += (degree * (particle3D.getX()-particleJ.getX()))/ pow(particle3D.distance(particleJ),degree+2);
                 ForceY += (degree * (particle3D.getY()-particleJ.getY()))/ pow(particle3D.distance(particleJ),degree+2);
@@ -135,36 +134,28 @@ public class Minimization {
         particle3D.setX(radiusTube * x/rho);
         particle3D.setY(radiusTube * y/rho);
 
-        if (z < heightTube/2 && z > -heightTube/2) {
+        if (z > heightTube/2) {
+            particle3D.setZ(particle3D.getZ()+(heightTube/2-particle3D.getZ())/(2));
+        } else if (z < (-(1)*heightTube/2)) {
+            particle3D.setZ(particle3D.getZ()+((-(1)*heightTube/2)-particle3D.getZ())/(2));
+        } else {
             particle3D.setZ(z);
         }
 
         return particle3D;
     }
 
-
-
     /**
-     * Метод возвращающий энергию системы в двумерном пространстве развертки боковой стороны цилиндра
+     * метод возвращающий энергию системы в двумерном пространстве развертки боковой стороны цилиндра
      * @param coordinates частицы
-     * @return энергию системы частиц
+     * @return энергия системы частиц
      */
-    private double energyOfSystem (ObservableList<Particle> coordinates) {
-        double Energy = 0;
-        for (int i = 0; i < numberOfParticle; i++) {
-            for (int j = 0; j < numberOfParticle; j++) {
-                if (i != j) {
-                    Energy += 1/pow(coordinates.get(i).distance(coordinates.get(j)),degree);
-                }
-            }
-            Energy += 1 / pow(coordinates.get(i).getZ() - heightTube / 2, degree) +
-                    1 / pow(coordinates.get(i).getZ() + heightTube / 2, degree);
-        }
-        return Energy;
+    public double energyOfSystem(ObservableList<Particle> coordinates) {
+        return energy(coordinates, numberOfParticle, degree, heightTube);
     }
 
     /**
-     * Метод возвращающий значение энергии системы при изменении координат одного элемета системы
+     * метод возвращающий значение энергии системы при изменении координат одного элемета системы
      * @param coordinates частицы
      * @param particle измененная частица
      * @return значение энергии системы при изменении координат одного элемета системы
@@ -180,22 +171,4 @@ public class Minimization {
                 1 / pow(particle.getZ() + heightTube / 2, degree);
         return Energy;
     }
-
-
-    /**
-     * Метод возвращающий значения энергии системы на каждом шаге минимизации
-     * @return массив значений энергии системы на каждом шаге минимизации
-     */
-    public ArrayList<Double> getArrayEnergy() {
-        return arrayEnergy;
-    }
-
-    /**
-     * Метод возвращающий значения коэффициента для координаты на каждом шаге минимизации
-     * @return массив значений коэффициента на каждом шаге минимизации
-     */
-    public ArrayList<Double> getArrayCoefficient() {
-        return arrayCoefficient;
-    }
-
 }

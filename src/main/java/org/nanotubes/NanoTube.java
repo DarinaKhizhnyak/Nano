@@ -15,6 +15,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
@@ -30,6 +31,7 @@ import org.nanotubes.generation.Mapping.TubeView;
 import org.nanotubes.generation.Mapping.Mapping;
 import org.nanotubes.minimization.Minimization;
 import org.nanotubes.generation.Geom.Particle;
+import org.nanotubes.minimization.StressMinimization;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,7 +136,7 @@ public class NanoTube extends Application {
         subScene.setCamera(camera);
         var root3d = new Group(subScene);
 
-        initMouseControl(subScene);
+        initMouseControl(subScene,stage,camera);
 
         Top.add(root3d,0,3,8,1);
         GridPane.setHalignment(root3d, HPos.CENTER);
@@ -146,20 +148,26 @@ public class NanoTube extends Application {
             int n = Integer.parseInt(textNumber.getText());
             tube.setHeight(Double.parseDouble(textFieldHeight.getText()));
             tube.setRadius(Double.parseDouble(textFieldRadius.getText()));
-            ObservableList<Particle> particles = new Generation(tube, n).ParticlesGeneration(particlesList);
+            Generation generation = new Generation(tube, n, 2);
+            ObservableList<Particle> particles = generation.ParticlesGeneration(particlesList);
             new Mapping(n,group,tube,particles).MappingParticle();
+            labelEnergyValue.setText(String.valueOf(generation.getEnergy(particles)));
         });
 
         buttonEnergyMinimization.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
-                Minimization minimization = new Minimization(particlesList,2,tube);
-                ObservableList<Particle> list = minimization.minimization();
-                new Mapping(list.size(),group,tube,list).MappingParticle();
-                buttonDiagram.setOnAction(actionEvent -> {
-                    Chart(stage,"Step","E","Minimization Process for Energy", "Diagram for Energy",400,600, minimization.getArrayEnergy());
-                    Chart(stage,"Step","k","Minimization Process for k", "Diagram for k",-300,-100, minimization.getArrayCoefficient());
-                });
+                Min(stage, buttonDiagram, tube, group, particlesList, labelEnergyValue);
             }
+        });
+
+        buttonEnergyMinimization.setOnAction(e -> {
+            Min(stage, buttonDiagram, tube, group, particlesList, labelEnergyValue);
+        });
+
+        buttonEnergyMinimizationStress.setOnAction(e -> {
+            double stress = Double.parseDouble(textStress.getText());
+            tube.setHeight(tube.getHeight() * stress / 100);
+            Min(stage, buttonDiagram, tube, group, particlesList, labelEnergyValue);
         });
 
 
@@ -167,6 +175,17 @@ public class NanoTube extends Application {
         stage.setScene(scene);
         stage.show();
         stage.setTitle("NanoTube Student Project");
+    }
+
+    private void Min(Stage stage, Button buttonDiagram, Tube tube, Group group, ObservableList<Particle> particlesList, Label label) {
+        Minimization minimization = new Minimization(particlesList,2,tube);
+        ObservableList<Particle> list = minimization.minimization();
+        new Mapping(list.size(),group,tube,list).MappingParticle();
+//        buttonDiagram.setOnAction(actionEvent -> {
+//            Chart(stage,"Step","E","Minimization Process for Energy", "Diagram for Energy",400,600, minimization.getArrayEnergy());
+//            Chart(stage,"Step","k","Minimization Process for k", "Diagram for k",-300,-100, minimization.getArrayCoefficient());
+//        });
+        label.setText(String.valueOf(minimization.energyOfSystem(list)));
     }
 
     /**
@@ -177,11 +196,8 @@ public class NanoTube extends Application {
         launch();
     }
 
-    /**
-     * Метод отвечающий за вращениее камеры с помощью "мыши"
-     * @param scene сцена
-     */
-    private void initMouseControl(SubScene scene) {
+
+    private void initMouseControl(SubScene scene, Stage stage, Camera camera) {
         scene.setOnMousePressed(event -> {
             anchorX = event.getSceneX();
             anchorY = event.getSceneY();
@@ -197,6 +213,9 @@ public class NanoTube extends Application {
             }
             anchorX = event.getSceneX();
             anchorY = event.getSceneY();
+        });
+        stage.addEventHandler(ScrollEvent.SCROLL, event -> {
+            camera.getTransforms().add(new Translate(0,0,camera.getTranslateZ()+ event.getDeltaY()));
         });
     }
 
