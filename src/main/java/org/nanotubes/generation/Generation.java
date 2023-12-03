@@ -21,7 +21,7 @@ public class Generation {
     /**
      * цвета частиц
      */
-    private static final Color[] COLORS = new Color[] {RED, YELLOW, GREEN, BROWN, BLUE, PINK, BLACK};
+    private static final Color[] COLORS = new Color[] {DARKBLUE};
     /**
      * число частиц
      */
@@ -69,9 +69,9 @@ public class Generation {
             Particle particle3D = new Particle(radius, COLORS[i % COLORS.length],
                     radiusTube*Math.cos(list.get(i).getX()/radiusTube),
                     radiusTube*Math.sin(list.get(i).getX()/radiusTube),
-                    list.get(i).getY()-heightTube/2);
+                    list.get(i).getY()-heightTube/2,
+                    i+1);
             particlesList.add(particle3D);
-            System.out.println(particlesList.get(i).getX());
         }
         return particlesList;
     }

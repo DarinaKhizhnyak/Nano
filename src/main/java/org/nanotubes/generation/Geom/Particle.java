@@ -32,6 +32,7 @@ public class Particle {
      * цвет частицы
      */
     private final Color color;
+    private final int number;
 
     /**
      * конструктор класса
@@ -41,13 +42,14 @@ public class Particle {
      * @param y координата частицы по оси y
      * @param z координата частицы по оси z
      */
-    public Particle(double radius, Color color, double x, double y, double z) {
+    public Particle(double radius, Color color, double x, double y, double z, int number) {
         this.particle = new Sphere(radius);
         this.radius = radius;
         this.x = x;
         this.y = y;
         this.z = z;
         this.color = color;
+        this.number = number;
         particle.setMaterial(new PhongMaterial(color));
         particle.setTranslateX(x);
         particle.setTranslateY(z);
@@ -153,5 +155,9 @@ public class Particle {
      */
     public double distance(Particle p) {
         return distance(x, y, z, p.getX(), p.getY(), p.getZ());
+    }
+
+    public int getNumber() {
+        return number;
     }
 }

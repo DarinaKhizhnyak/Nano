@@ -14,7 +14,7 @@ public class Minimization {
     /**
      * коэффициент (из теории)
      */
-    private double COEFFICIENT = 50;
+    private final double COEFFICIENT = 50;
     /**
      * допустимое значение коэффициента
      */
@@ -74,18 +74,24 @@ public class Minimization {
         double energyOld = MAX_VALUE;
         double energyNew = energyOfSystem(list);
 
-        int iter = 10000;
-        while (COEFFICIENT > ACCEPTABLE_COEFFICIENT && energyOld > energyNew && iter > 0) {
+        int iter = 5000;
+        double k = COEFFICIENT();
+        System.out.println(k);
+        while (k > ACCEPTABLE_COEFFICIENT && energyOld > energyNew && iter > 0) {
             iter--;
             System.out.println(iter);
             if (energyOld - energyNew < ACCEPTABLE_VALUE_OF_ENERGY_DIFFERENCE) {
-                COEFFICIENT = COEFFICIENT/2;
+                k = k/2;
             }
             energyOld = energyNew;
             stepOfMinimization(list);
             energyNew = energyOfSystem(list);
         }
         return list;
+    }
+
+    private double COEFFICIENT() {
+        return COEFFICIENT*Math.sqrt((2*Math.PI*radiusTube*heightTube)/numberOfParticle);
     }
 
     /**
@@ -109,13 +115,15 @@ public class Minimization {
      */
     private Particle newParticle(ObservableList<Particle> coordinates, int i) {
         Particle particle3D = new Particle(coordinates.get(i).getRadius(),coordinates.get(i).getColor(),
-                coordinates.get(i).getX(),coordinates.get(i).getY(),coordinates.get(i).getZ());
+                coordinates.get(i).getX(),coordinates.get(i).getY(),coordinates.get(i).getZ(),
+                coordinates.get(i).getNumber());
         double ForceX = 0.0;
         double ForceY = 0.0;
         double ForceZ = 0.0;
         for (int j = 0; j < numberOfParticle; j++) {
             Particle particleJ = new Particle(coordinates.get(j).getRadius(),coordinates.get(j).getColor(),
-                    coordinates.get(j).getX(),coordinates.get(j).getY(),coordinates.get(j).getZ());
+                    coordinates.get(j).getX(),coordinates.get(j).getY(),coordinates.get(j).getZ(),
+                    coordinates.get(j).getNumber());
             if (i != j) {
                 ForceX += (degree * (particle3D.getX()-particleJ.getX()))/ pow(particle3D.distance(particleJ),degree+2);
                 ForceY += (degree * (particle3D.getY()-particleJ.getY()))/ pow(particle3D.distance(particleJ),degree+2);

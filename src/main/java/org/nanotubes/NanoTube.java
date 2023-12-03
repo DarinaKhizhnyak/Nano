@@ -31,7 +31,6 @@ import org.nanotubes.generation.Mapping.TubeView;
 import org.nanotubes.generation.Mapping.Mapping;
 import org.nanotubes.minimization.Minimization;
 import org.nanotubes.generation.Geom.Particle;
-import org.nanotubes.minimization.StressMinimization;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +47,7 @@ public class NanoTube extends Application {
      * Ширина окна в пикселях
      */
     @SuppressWarnings("FieldCanBeLocal")
-    private final int WIDTH = 800;
+    private final int WIDTH = 1400;
     /**
      * Высота окна в пикселях
      */
@@ -90,7 +89,7 @@ public class NanoTube extends Application {
         var textStress = new TextField();
 
         GridPane Top = new GridPane();
-        for (int i : new int[]{120, 100, 70, 90, 60, 140, 150, 65}) {
+        for (int i : new int[]{120, 100, 70, 90, 60, 140, 150, 65, 1500}) {
             Top.getColumnConstraints().add(new ColumnConstraints(i));
         }
         for (int i = 0; i < 3; i++) {
@@ -126,21 +125,36 @@ public class NanoTube extends Application {
         camera.setNearClip(0.1);
         camera.setFarClip(10000.0);
         camera.setFieldOfView(20);
-        camera.getTransforms().addAll (rotateX, rotateY, new Translate(0, 0, -500));
-
+        camera.getTransforms().addAll(rotateX, rotateY, new Translate(0, 0, -500));
 
         Tube tube = new Tube(80,80);
-        Group group = new Group(new TubeView(tube,Color.YELLOW).asNode());
-        SubScene subScene = new SubScene(group, 750, 550, true, SceneAntialiasing.BALANCED);
-        subScene.setFill (Color.rgb (129, 129, 129));
-        subScene.setCamera(camera);
-        var root3d = new Group(subScene);
+        Group group3D = new Group(new TubeView(tube,Color.YELLOW).asNode());
+        SubScene subScene3D = new SubScene(group3D, 750, 550, true, SceneAntialiasing.BALANCED);
+        subScene3D.setFill (Color.rgb (129, 129, 129));
+        subScene3D.setCamera(camera);
+        var root3d = new Group(subScene3D);
 
-        initMouseControl(subScene,stage,camera);
+        PerspectiveCamera camera2D = new PerspectiveCamera(true);
+        camera2D.setNearClip(0.1);
+        camera2D.setFarClip(10000.0);
+        camera2D.setFieldOfView(20);
+        camera2D.getTransforms().addAll(new Translate(80, 0, -500));
 
+        Group group2D = new Group();
+        SubScene subScene2D = new SubScene(group2D, 1500, 640,true, SceneAntialiasing.BALANCED);
+        subScene2D.setFill (Color.rgb (245, 245, 176));
+        subScene2D.setCamera(camera2D);
+        var root2d = new Group(subScene2D);
+
+        initMouseControl(subScene3D,stage,camera);
+        initMouseControl2D(subScene2D,stage,camera2D);
+
+        Top.add(root2d,8,0,1,4);
         Top.add(root3d,0,3,8,1);
         GridPane.setHalignment(root3d, HPos.CENTER);
         GridPane.setValignment(root3d, VPos.CENTER);
+        GridPane.setHalignment(root2d, HPos.CENTER);
+        GridPane.setValignment(root2d, VPos.CENTER);
 
         final ObservableList<Particle> particlesList = FXCollections.observableArrayList();
 
@@ -150,24 +164,26 @@ public class NanoTube extends Application {
             tube.setRadius(Double.parseDouble(textFieldRadius.getText()));
             Generation generation = new Generation(tube, n, 2);
             ObservableList<Particle> particles = generation.ParticlesGeneration(particlesList);
-            new Mapping(n,group,tube,particles).MappingParticle();
+            Mapping mapping = new Mapping(n,group3D,group2D,tube,particles);
+            mapping.MappingParticle();
+            mapping.MappingParticle2D();
             labelEnergyValue.setText(String.valueOf(generation.getEnergy(particles)));
         });
 
         buttonEnergyMinimization.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
-                Min(stage, buttonDiagram, tube, group, particlesList, labelEnergyValue);
+                Min(stage, buttonDiagram, tube, group3D, group2D, particlesList, labelEnergyValue);
             }
         });
 
         buttonEnergyMinimization.setOnAction(e -> {
-            Min(stage, buttonDiagram, tube, group, particlesList, labelEnergyValue);
+            Min(stage, buttonDiagram, tube, group3D, group2D, particlesList, labelEnergyValue);
         });
 
         buttonEnergyMinimizationStress.setOnAction(e -> {
             double stress = Double.parseDouble(textStress.getText());
             tube.setHeight(tube.getHeight() * stress / 100);
-            Min(stage, buttonDiagram, tube, group, particlesList, labelEnergyValue);
+            Min(stage, buttonDiagram, tube, group3D, group2D, particlesList, labelEnergyValue);
         });
 
 
@@ -177,10 +193,12 @@ public class NanoTube extends Application {
         stage.setTitle("NanoTube Student Project");
     }
 
-    private void Min(Stage stage, Button buttonDiagram, Tube tube, Group group, ObservableList<Particle> particlesList, Label label) {
+    private void Min(Stage stage, Button buttonDiagram, Tube tube, Group group3D, Group group2D, ObservableList<Particle> particlesList, Label label) {
         Minimization minimization = new Minimization(particlesList,2,tube);
         ObservableList<Particle> list = minimization.minimization();
-        new Mapping(list.size(),group,tube,list).MappingParticle();
+        Mapping mapping = new Mapping(list.size(),group3D, group2D ,tube,list);
+        mapping.MappingParticle();
+        mapping.MappingParticle2D();
 //        buttonDiagram.setOnAction(actionEvent -> {
 //            Chart(stage,"Step","E","Minimization Process for Energy", "Diagram for Energy",400,600, minimization.getArrayEnergy());
 //            Chart(stage,"Step","k","Minimization Process for k", "Diagram for k",-300,-100, minimization.getArrayCoefficient());
@@ -196,6 +214,26 @@ public class NanoTube extends Application {
         launch();
     }
 
+
+    private void initMouseControl2D(SubScene scene, Stage stage, Camera camera) {
+        scene.setOnMousePressed(event -> {
+            anchorX = event.getSceneX();
+            anchorY = event.getSceneY();
+        });
+        scene.setOnMouseDragged(event -> {
+            double dx = (anchorX - event.getSceneX());
+            double dy = (anchorY - event.getSceneY());
+            if (event.isPrimaryButtonDown()) {
+                camera.getTransforms().add(new Translate(camera.getTranslateX()+dx/4,0,0));
+                camera.getTransforms().add(new Translate(0,camera.getTranslateY()+dy/4,0));
+            }
+            anchorX = event.getSceneX();
+            anchorY = event.getSceneY();
+        });
+        stage.addEventHandler(ScrollEvent.SCROLL, event -> {
+            camera.getTransforms().add(new Translate(0,0,camera.getTranslateZ()+ event.getDeltaY()));
+        });
+    }
 
     private void initMouseControl(SubScene scene, Stage stage, Camera camera) {
         scene.setOnMousePressed(event -> {
