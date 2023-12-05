@@ -138,7 +138,7 @@ public class NanoTube extends Application {
         camera2D.setNearClip(0.1);
         camera2D.setFarClip(10000.0);
         camera2D.setFieldOfView(20);
-        camera2D.getTransforms().addAll(new Translate(80, 0, -500));
+        camera2D.getTransforms().addAll(new Translate(200, 0, -500));
 
         Group group2D = new Group();
         SubScene subScene2D = new SubScene(group2D, 1500, 640,true, SceneAntialiasing.BALANCED);

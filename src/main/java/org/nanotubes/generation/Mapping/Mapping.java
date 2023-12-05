@@ -5,7 +5,9 @@ import javafx.scene.Group;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import org.nanotubes.generation.Geom.Particle2D;
 import org.nanotubes.generation.Geom.Tube;
 import org.nanotubes.generation.Geom.Particle;
@@ -66,10 +68,12 @@ public class Mapping {
             Particle2D particle2D = new Particle2D(tube, list.get(i));
             group2D.getChildren().add(particle2D.getCircle());
             Text text = new Text(String.valueOf(particle2D.getNumber()));
-            text.setFont(new Font("times new roman", particle2D.getRadius()));
-            text.setFill(Color.YELLOW);
+            text.setFont(new Font("times new roman", particle2D.getRadius()*1.5));
+            text.setTextAlignment(TextAlignment.CENTER);
+            text.setFill(Color.RED);
+            text.setFontSmoothingType(FontSmoothingType.LCD);
             text.setTranslateX(particle2D.getX()-particle2D.getRadius()/2);
-            text.setTranslateY(particle2D.getY());
+            text.setTranslateY(particle2D.getY()+particle2D.getRadius()/2);
             group2D.getChildren().add(text);
         }
     }
