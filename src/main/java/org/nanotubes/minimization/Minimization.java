@@ -14,7 +14,7 @@ public class Minimization {
     /**
      * коэффициент (из теории)
      */
-    private final double COEFFICIENT = 50;
+    private final double COEFFICIENT = 500;
     /**
      * допустимое значение коэффициента
      */
@@ -70,9 +70,8 @@ public class Minimization {
      * @return список частиц
      */
     public ObservableList<Particle> minimization () {
-        ObservableList<Particle> list = particles;
         double energyOld = MAX_VALUE;
-        double energyNew = energyOfSystem(list);
+        double energyNew = energyOfSystem(particles);
 
         int iter = 5000;
         double k = COEFFICIENT();
@@ -84,14 +83,14 @@ public class Minimization {
                 k = k/2;
             }
             energyOld = energyNew;
-            stepOfMinimization(list);
-            energyNew = energyOfSystem(list);
+            stepOfMinimization(particles);
+            energyNew = energyOfSystem(particles);
         }
-        return list;
+        return particles;
     }
 
     private double COEFFICIENT() {
-        return COEFFICIENT*Math.sqrt((2*Math.PI*radiusTube*heightTube)/numberOfParticle);
+        return COEFFICIENT*radiusTube*heightTube/(2*numberOfParticle);
     }
 
     /**

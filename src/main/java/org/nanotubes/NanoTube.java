@@ -31,6 +31,7 @@ import org.nanotubes.generation.Mapping.TubeView;
 import org.nanotubes.generation.Mapping.Mapping;
 import org.nanotubes.minimization.Minimization;
 import org.nanotubes.generation.Geom.Particle;
+import org.nanotubes.minimization.StressMinimization;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -164,7 +165,7 @@ public class NanoTube extends Application {
             tube.setRadius(Double.parseDouble(textFieldRadius.getText()));
             Generation generation = new Generation(tube, n, 2);
             ObservableList<Particle> particles = generation.ParticlesGeneration(particlesList);
-            Mapping mapping = new Mapping(n,group3D,group2D,tube,particles);
+            Mapping mapping = new Mapping(group3D,group2D,tube,particles);
             mapping.MappingParticle();
             mapping.MappingParticle2D();
             labelEnergyValue.setText(String.valueOf(generation.getEnergy(particles)));
@@ -182,7 +183,7 @@ public class NanoTube extends Application {
 
         buttonEnergyMinimizationStress.setOnAction(e -> {
             double stress = Double.parseDouble(textStress.getText());
-            tube.setHeight(tube.getHeight() * stress / 100);
+            new StressMinimization(particlesList,tube,stress).StressNewCoordinatesOfParticle();
             Min(stage, buttonDiagram, tube, group3D, group2D, particlesList, labelEnergyValue);
         });
 
@@ -196,7 +197,7 @@ public class NanoTube extends Application {
     private void Min(Stage stage, Button buttonDiagram, Tube tube, Group group3D, Group group2D, ObservableList<Particle> particlesList, Label label) {
         Minimization minimization = new Minimization(particlesList,2,tube);
         ObservableList<Particle> list = minimization.minimization();
-        Mapping mapping = new Mapping(list.size(),group3D, group2D ,tube,list);
+        Mapping mapping = new Mapping(group3D, group2D ,tube,list);
         mapping.MappingParticle();
         mapping.MappingParticle2D();
 //        buttonDiagram.setOnAction(actionEvent -> {

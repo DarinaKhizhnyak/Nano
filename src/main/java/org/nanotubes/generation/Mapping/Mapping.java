@@ -37,14 +37,13 @@ public class Mapping {
 
     /**
      * конструктор класса
-     * @param numberOfParticle число частиц
      * @param group2D
      * @param group3D
      * @param tube 3D-объект цилиндр
      * @param list список 3D-объектов - частиц
      */
-    public Mapping(int numberOfParticle, Group group3D, Group group2D, Tube tube, ObservableList<Particle> list) {
-        this.numberOfParticle = numberOfParticle;
+    public Mapping(Group group3D, Group group2D, Tube tube, ObservableList<Particle> list) {
+        numberOfParticle = list.size();
         this.group3D = group3D;
         this.group2D = group2D;
         this.list = list;

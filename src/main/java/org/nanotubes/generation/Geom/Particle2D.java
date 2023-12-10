@@ -15,11 +15,11 @@ public class Particle2D {
         this.circle = new Circle(radius);
         this.TubeRadius = tube.getRadius();
         this.number = particle.getNumber();
-        circle.setCenterX(phi(particle)*TubeRadius*2);
-        circle.setCenterY(particle.getZ()*2);
-        circle.setFill(particle.getColor());
         this.x = phi(particle)*TubeRadius*2;
         this.y = particle.getZ()*2;
+        circle.setCenterX(x);
+        circle.setCenterY(y);
+        circle.setFill(particle.getColor());
     }
 
     private double phi (Particle particle) {
