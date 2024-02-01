@@ -1,5 +1,8 @@
 package org.nanotubes.generation.PoissonDisk;
 
+import org.nanotubes.generation.Geom.Vector2DDouble;
+import org.nanotubes.generation.Geom.Vector2DInt;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;

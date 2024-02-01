@@ -2,7 +2,6 @@ package org.nanotubes.generation.Mapping;
 
 import javafx.collections.ObservableList;
 import javafx.scene.Group;
-import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontSmoothingType;
@@ -37,8 +36,8 @@ public class Mapping {
 
     /**
      * конструктор класса
-     * @param group2D
-     * @param group3D
+     * @param group2D группа графических объектов, которые необходимо отобразить в двухмерном пространстве
+     * @param group3D группа графических объектов, которые необходимо отобразить в трехмерном пространстве
      * @param tube 3D-объект цилиндр
      * @param list список 3D-объектов - частиц
      */

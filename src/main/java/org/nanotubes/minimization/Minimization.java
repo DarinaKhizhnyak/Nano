@@ -14,7 +14,7 @@ public class Minimization {
     /**
      * коэффициент (из теории)
      */
-    private final double COEFFICIENT = 500;
+    private final double COEFFICIENT;
     /**
      * допустимое значение коэффициента
      */
@@ -57,9 +57,10 @@ public class Minimization {
      * @param degree степень (из теории)
      * @param tube параметры цилиндра
      */
-    public Minimization(ObservableList<Particle> particleList, int degree, Tube tube) {
+    public Minimization(ObservableList<Particle> particleList, int degree, Tube tube, double coefficient) {
         this.particles = particleList;
         this.degree = degree;
+        this.COEFFICIENT = coefficient;
         numberOfParticle = particleList.size();
         heightTube = tube.getHeight();
         radiusTube = tube.getRadius();
@@ -126,12 +127,19 @@ public class Minimization {
             if (i != j) {
                 ForceX += (degree * (particle3D.getX()-particleJ.getX()))/ pow(particle3D.distance(particleJ),degree+2);
                 ForceY += (degree * (particle3D.getY()-particleJ.getY()))/ pow(particle3D.distance(particleJ),degree+2);
-                ForceZ += (degree * (particle3D.getZ()-particleJ.getZ()))/ pow(particle3D.distance(particleJ),degree+2);
+                if (Math.abs(particle3D.getZ()-particleJ.getZ()) > heightTube/2) {
+                    if (particleJ.getZ() < 0.0) {
+                        particleJ.setZ(particleJ.getZ() + heightTube);
+                        ForceZ += (degree * (particle3D.getZ()-particleJ.getZ()))/ pow(particle3D.distance(particleJ),degree+2);
+                    } else if (particleJ.getZ() > 0.0) {
+                        particleJ.setZ(particleJ.getZ() - heightTube);
+                        ForceZ += (degree * (particle3D.getZ()-particleJ.getZ()))/ pow(particle3D.distance(particleJ),degree+2);
+                    }
+                } else {
+                    ForceZ += (degree * (particle3D.getZ()-particleJ.getZ()))/ pow(particle3D.distance(particleJ),degree+2);
+                }
             }
         }
-        ForceZ += degree / pow(particle3D.getZ() - heightTube / 2, degree + 1) +
-                degree / pow(particle3D.getZ() + heightTube / 2, degree + 1);
-
         double x = particle3D.getX() + COEFFICIENT * ForceX;
         double y = particle3D.getY() + COEFFICIENT * ForceY;
         double z = particle3D.getZ() + COEFFICIENT * ForceZ;
@@ -142,9 +150,9 @@ public class Minimization {
         particle3D.setY(radiusTube * y/rho);
 
         if (z > heightTube/2) {
-            particle3D.setZ(particle3D.getZ()+(heightTube/2-particle3D.getZ())/(2));
+            particle3D.setZ(z - heightTube);
         } else if (z < (-(1)*heightTube/2)) {
-            particle3D.setZ(particle3D.getZ()+((-(1)*heightTube/2)-particle3D.getZ())/(2));
+            particle3D.setZ(z + heightTube);
         } else {
             particle3D.setZ(z);
         }
@@ -153,7 +161,7 @@ public class Minimization {
     }
 
     /**
-     * метод возвращающий энергию системы в двумерном пространстве развертки боковой стороны цилиндра
+     * метод возвращающий энергию системы
      * @param coordinates частицы
      * @return энергия системы частиц
      */
@@ -170,12 +178,23 @@ public class Minimization {
     private double energyOfPartial (ObservableList<Particle> coordinates, Particle particle, int i) {
         double Energy = 0;
         for (int j = 0; j < numberOfParticle; j++) {
+            Particle particleJ = new Particle(coordinates.get(j).getRadius(),coordinates.get(j).getColor(),
+                    coordinates.get(j).getX(),coordinates.get(j).getY(),coordinates.get(j).getZ(),
+                    coordinates.get(j).getNumber());
             if (i != j) {
-                Energy += 1/Math.pow(particle.distance(coordinates.get(i)),degree);
+                if (Math.abs(particle.getZ()-particleJ.getZ()) > heightTube/2) {
+                    if (particleJ.getZ() <= 0.0) {
+                        particleJ.setZ(particleJ.getZ() + heightTube);
+                        Energy += 1/Math.pow(particle.distance(particleJ),degree);
+                    } else if (particleJ.getZ() >= 0.0) {
+                        particleJ.setZ(particleJ.getZ() - heightTube);
+                        Energy += 1/Math.pow(particle.distance(particleJ),degree);
+                    }
+                } else {
+                    Energy += 1/Math.pow(particle.distance(particleJ),degree);
+                }
             }
         }
-        Energy += 1 / pow(particle.getZ() - heightTube / 2, degree) +
-                1 / pow(particle.getZ() + heightTube / 2, degree);
         return Energy;
     }
 }

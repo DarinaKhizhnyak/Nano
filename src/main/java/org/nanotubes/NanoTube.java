@@ -4,16 +4,12 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import javafx.event.ActionEvent;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 
 import javafx.scene.*;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.ColumnConstraints;
@@ -26,15 +22,20 @@ import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 
 import org.nanotubes.generation.Generation;
+import org.nanotubes.generation.GenerationIdeal;
 import org.nanotubes.generation.Geom.Tube;
+import org.nanotubes.generation.Geom.Vector2DDouble;
+import org.nanotubes.generation.HexagonalLattice.HexagonalLattice;
 import org.nanotubes.generation.Mapping.TubeView;
 import org.nanotubes.generation.Mapping.Mapping;
 import org.nanotubes.minimization.Minimization;
 import org.nanotubes.generation.Geom.Particle;
 import org.nanotubes.minimization.StressMinimization;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
+import static org.nanotubes.generation.Generation.energy;
 
 /**
  * Класс воспроизводящий программу
@@ -53,7 +54,7 @@ public class NanoTube extends Application {
      * Высота окна в пикселях
      */
     @SuppressWarnings("FieldCanBeLocal")
-    private final int HEIGHT = 670;
+    private final int HEIGHT = 700;
     /**
      * Радиус определяющий резкость вращения камеры
      */
@@ -69,141 +70,267 @@ public class NanoTube extends Application {
 
     /**
      * Метод содержащий элементы сцены
+     *
      * @param stage контйнер (окно)
      */
     @Override
     public void start(Stage stage) {
+        var menu = new TabPane();
 
-        var buttonEnter = new Button("Enter");
-        var buttonEnergyMinimization = new Button("Minimization");
-        var buttonEnergyMinimizationStress = new Button("Minimization Stress");
-        var buttonDiagram = new Button("Diagram");
+        var buttonEnterRandom = new Button("Enter");
+        var buttonEnterIdeal = new Button("Enter");
+        var buttonEnergyMinimizationIdeal = new Button("Minimization");
+        var buttonEnergyMinimizationRandom = new Button("Minimization");
+        var buttonEnergyMinimizationStressRandom = new Button("Minimization Stress");
+        var buttonEnergyMinimizationStressIdeal = new Button("Minimization Stress");
+        var buttonDiagramIdeal = new Button("Diagram");
+        var buttonDiagramRandom = new Button("Diagram");
+        var labelParameterM = new Label("Parameter m");
+        var labelParameterN = new Label("Parameter n");
+        var labelCoefficientIdeal = new Label("Coefficient");
+        var labelCoefficientRandom = new Label("Coefficient");
         var labelRadius = new Label("Cylinder's radius");
         var labelHeight = new Label("Cylinder's height");
-        var labelNumber = new Label("Number Particle");
-        var labelStress = new Label("Stress");
-        var labelEnergy = new Label("Energy");
-        var labelEnergyValue = new Label("0");
+        var labelNumberRandom = new Label("Number Particle");
+        var labelNumberIdeal = new Label("Number Particle");
+        var labelNumberChange = new Label("0");
+        var labelStressRandom = new Label("Stress");
+        var labelStressIdeal = new Label("Stress");
+        var labelEnergyRandom = new Label("Energy");
+        var labelEnergyIdeal = new Label("Energy");
+        var labelEnergyValueRandom = new Label("0");
+        var labelEnergyValueIdeal = new Label("0");
         var textFieldRadius = new TextField();
         var textFieldHeight = new TextField();
+        var textFieldParameterM = new TextField();
+        var textFieldParameterN = new TextField();
+        var textFieldCoefficientIdeal = new TextField();
+        var textFieldCoefficientRandom = new TextField();
         var textNumber = new TextField();
-        var textStress = new TextField();
+        var textStressIdeal = new TextField();
+        var textStressRandom = new TextField();
 
-        GridPane Top = new GridPane();
-        for (int i : new int[]{120, 100, 70, 90, 60, 140, 150, 65, 1500}) {
-            Top.getColumnConstraints().add(new ColumnConstraints(i));
-        }
-        for (int i = 0; i < 3; i++) {
-            Top.getRowConstraints().add(new RowConstraints(30));
-        }
-        Top.getRowConstraints().add(new RowConstraints(560));
-
-        Arrays.asList(labelRadius, labelHeight, labelNumber, labelStress, labelEnergy).forEach(label -> {
+        Arrays.asList(labelRadius, labelHeight, labelNumberRandom, labelStressRandom, labelEnergyRandom,
+                labelCoefficientRandom, labelParameterM, labelParameterN, labelNumberIdeal, labelCoefficientIdeal,
+                labelEnergyIdeal, labelStressIdeal).forEach(label -> {
             GridPane.setHalignment(label, HPos.CENTER);
             GridPane.setValignment(label, VPos.CENTER);
         });
-        Arrays.asList(buttonEnter, buttonEnergyMinimizationStress, buttonEnergyMinimization, buttonDiagram).forEach(button -> {
+        Arrays.asList(buttonEnterRandom, buttonEnergyMinimizationStressRandom, buttonEnergyMinimizationRandom,
+                buttonDiagramRandom, buttonEnterIdeal, buttonEnergyMinimizationIdeal,
+                buttonEnergyMinimizationStressIdeal, buttonDiagramIdeal).forEach(button -> {
             GridPane.setHalignment(button, HPos.CENTER);
             GridPane.setValignment(button, VPos.CENTER);
         });
 
-        Top.add(labelRadius, 0, 0);
-        Top.add(labelHeight, 0, 1);
-        Top.add(labelNumber, 0, 2);
-        Top.add(textFieldRadius, 1, 0);
-        Top.add(textFieldHeight, 1, 1);
-        Top.add(textNumber, 1, 2);
-        Top.add(buttonEnter,2,0,1,3);
-        Top.add(buttonEnergyMinimization,3,0,1,3);
-        Top.add(labelStress, 4, 0);
-        Top.add(textStress, 5, 0);
-        Top.add(labelEnergy, 4, 1,1,2);
-        Top.add(labelEnergyValue, 5, 1,1,2);
-        Top.add(buttonEnergyMinimizationStress,6,0,1,3);
-        Top.add(buttonDiagram,7,0,1,3);
 
-        PerspectiveCamera camera = new PerspectiveCamera(true);
-        camera.setNearClip(0.1);
-        camera.setFarClip(10000.0);
-        camera.setFieldOfView(20);
-        camera.getTransforms().addAll(rotateX, rotateY, new Translate(0, 0, -500));
+        var randomTab = new Tab("Random Tube");
+        randomTab.setClosable(false);
+        var idealTab = new Tab("Ideal Tube");
+        idealTab.setClosable(false);
+        menu.getTabs().add(randomTab);
+        menu.getTabs().add(idealTab);
 
-        Tube tube = new Tube(80,80);
-        Group group3D = new Group(new TubeView(tube,Color.YELLOW).asNode());
-        SubScene subScene3D = new SubScene(group3D, 750, 550, true, SceneAntialiasing.BALANCED);
-        subScene3D.setFill (Color.rgb (129, 129, 129));
-        subScene3D.setCamera(camera);
-        var root3d = new Group(subScene3D);
+        GridPane gridPaneRandom = new GridPane();
+        randomTab.setContent(gridPaneRandom);
+        for (int i : new int[]{120, 100, 140, 80, 140, 80, 1500}) {
+            gridPaneRandom.getColumnConstraints().add(new ColumnConstraints(i));
+        }
+        for (int i = 0; i < 3; i++) {
+            gridPaneRandom.getRowConstraints().add(new RowConstraints(30));
+        }
+        gridPaneRandom.getRowConstraints().add(new RowConstraints(560));
 
-        PerspectiveCamera camera2D = new PerspectiveCamera(true);
-        camera2D.setNearClip(0.1);
-        camera2D.setFarClip(10000.0);
-        camera2D.setFieldOfView(20);
-        camera2D.getTransforms().addAll(new Translate(200, 0, -500));
+        gridPaneRandom.add(labelRadius, 0, 0);
+        gridPaneRandom.add(labelHeight, 0, 1);
+        gridPaneRandom.add(labelNumberRandom, 0, 2);
+        gridPaneRandom.add(textFieldRadius, 1, 0);
+        gridPaneRandom.add(textFieldHeight, 1, 1);
+        gridPaneRandom.add(textNumber, 1, 2);
+        gridPaneRandom.add(buttonEnterRandom, 2, 0);
+        gridPaneRandom.add(buttonEnergyMinimizationRandom, 2, 1);
+        gridPaneRandom.add(buttonEnergyMinimizationStressRandom, 2, 2);
+        gridPaneRandom.add(labelStressRandom, 3, 0);
+        gridPaneRandom.add(textStressRandom, 4, 0);
+        gridPaneRandom.add(labelCoefficientRandom, 3, 1);
+        gridPaneRandom.add(textFieldCoefficientRandom,4,1);
+        gridPaneRandom.add(labelEnergyRandom, 3, 2);
+        gridPaneRandom.add(labelEnergyValueRandom, 4, 2);
+        gridPaneRandom.add(buttonDiagramRandom, 5, 0, 1, 3);
 
-        Group group2D = new Group();
-        SubScene subScene2D = new SubScene(group2D, 1500, 640,true, SceneAntialiasing.BALANCED);
-        subScene2D.setFill (Color.rgb (245, 245, 176));
-        subScene2D.setCamera(camera2D);
-        var root2d = new Group(subScene2D);
+        PerspectiveCamera camera3DRandom = new PerspectiveCamera(true);
+        camera3DRandom.setNearClip(0.1);
+        camera3DRandom.setFarClip(100000.0);
+        camera3DRandom.setFieldOfView(20);
+        camera3DRandom.getTransforms().addAll(rotateX, rotateY, new Translate(0, 0, -3000));
 
-        initMouseControl(subScene3D,stage,camera);
-        initMouseControl2D(subScene2D,stage,camera2D);
+        Tube tube = new Tube(100, 1000);
+        Group group3DRandom = new Group(new TubeView(tube, Color.YELLOW).asNode());
+        SubScene subScene3DRandom = new SubScene(group3DRandom, 650, 550, true, SceneAntialiasing.BALANCED);
+        subScene3DRandom.setFill(Color.rgb(129, 129, 129));
+        subScene3DRandom.setCamera(camera3DRandom);
+        var root3dRandom = new Group(subScene3DRandom);
 
-        Top.add(root2d,8,0,1,4);
-        Top.add(root3d,0,3,8,1);
-        GridPane.setHalignment(root3d, HPos.CENTER);
-        GridPane.setValignment(root3d, VPos.CENTER);
-        GridPane.setHalignment(root2d, HPos.CENTER);
-        GridPane.setValignment(root2d, VPos.CENTER);
+        PerspectiveCamera camera2DRandom = new PerspectiveCamera(true);
+        camera2DRandom.setNearClip(0.1);
+        camera2DRandom.setFarClip(10000.0);
+        camera2DRandom.setFieldOfView(20);
+        camera2DRandom.getTransforms().addAll(new Translate(1900, 0, -6000));
+
+        Group group2DRandom = new Group();
+        SubScene subScene2DRandom = new SubScene(group2DRandom, 1500, 640, true, SceneAntialiasing.BALANCED);
+        subScene2DRandom.setFill(Color.rgb(245, 245, 176));
+        subScene2DRandom.setCamera(camera2DRandom);
+        var root2dRandom = new Group(subScene2DRandom);
+
+        initMouseControl(subScene3DRandom, stage, camera3DRandom);
+        initMouseControl2D(subScene2DRandom, stage, camera2DRandom);
+
+        gridPaneRandom.add(root2dRandom, 6, 0, 1, 4);
+        gridPaneRandom.add(root3dRandom, 0, 3, 6, 1);
+        GridPane.setHalignment(root3dRandom, HPos.CENTER);
+        GridPane.setValignment(root3dRandom, VPos.CENTER);
+        GridPane.setHalignment(root2dRandom, HPos.CENTER);
+        GridPane.setValignment(root2dRandom, VPos.CENTER);
 
         final ObservableList<Particle> particlesList = FXCollections.observableArrayList();
 
-        buttonEnter.setOnAction(e -> {
+        buttonEnterRandom.setOnAction(e -> {
             int n = Integer.parseInt(textNumber.getText());
             tube.setHeight(Double.parseDouble(textFieldHeight.getText()));
             tube.setRadius(Double.parseDouble(textFieldRadius.getText()));
             Generation generation = new Generation(tube, n, 2);
             ObservableList<Particle> particles = generation.ParticlesGeneration(particlesList);
-            Mapping mapping = new Mapping(group3D,group2D,tube,particles);
+            Mapping mapping = new Mapping(group3DRandom, group2DRandom, tube, particles);
             mapping.MappingParticle();
             mapping.MappingParticle2D();
-            labelEnergyValue.setText(String.valueOf(generation.getEnergy(particles)));
+            labelEnergyValueRandom.setText(String.valueOf(generation.getEnergy(particles)));
         });
 
-        buttonEnergyMinimization.setOnKeyPressed(e -> {
+        buttonEnergyMinimizationRandom.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
-                Min(stage, buttonDiagram, tube, group3D, group2D, particlesList, labelEnergyValue);
+                double coefficient = Double.parseDouble(textFieldCoefficientRandom.getText());
+                Min(tube, group3DRandom, group2DRandom, particlesList, labelEnergyValueRandom, coefficient);
             }
         });
 
-        buttonEnergyMinimization.setOnAction(e -> {
-            Min(stage, buttonDiagram, tube, group3D, group2D, particlesList, labelEnergyValue);
+        buttonEnergyMinimizationRandom.setOnAction(event -> {
+            double coefficient = Double.parseDouble(textFieldCoefficientRandom.getText());
+            Min(tube, group3DRandom, group2DRandom, particlesList, labelEnergyValueRandom,coefficient);
         });
 
-        buttonEnergyMinimizationStress.setOnAction(e -> {
-            double stress = Double.parseDouble(textStress.getText());
-            new StressMinimization(particlesList,tube,stress).StressNewCoordinatesOfParticle();
-            Min(stage, buttonDiagram, tube, group3D, group2D, particlesList, labelEnergyValue);
+        buttonEnergyMinimizationStressRandom.setOnAction(e -> {
+            double stress = Double.parseDouble(textStressRandom.getText());
+            double coefficient = Double.parseDouble(textFieldCoefficientRandom.getText());
+            new StressMinimization(particlesList, tube, stress).StressNewCoordinatesOfParticle();
+            Min(tube, group3DRandom, group2DRandom, particlesList, labelEnergyValueRandom, coefficient);
         });
 
+        GridPane gridPaneIdeal = new GridPane();
+        idealTab.setContent(gridPaneIdeal);
+        for (int i : new int[]{120, 100, 140, 80, 140, 80, 4500}) {
+            gridPaneIdeal.getColumnConstraints().add(new ColumnConstraints(i));
+        }
+        for (int i = 0; i < 3; i++) {
+            gridPaneIdeal.getRowConstraints().add(new RowConstraints(30));
+        }
+        gridPaneIdeal.getRowConstraints().add(new RowConstraints(560));
 
-        var scene = new Scene(Top, WIDTH,HEIGHT);
+        gridPaneIdeal.add(labelParameterN, 0, 0);
+        gridPaneIdeal.add(labelParameterM, 0, 1);
+        gridPaneIdeal.add(labelNumberIdeal,0,2);
+        gridPaneIdeal.add(textFieldParameterN, 1, 0);
+        gridPaneIdeal.add(textFieldParameterM, 1, 1);
+        gridPaneIdeal.add(labelNumberChange,1,2);
+        gridPaneIdeal.add(buttonEnterIdeal, 2, 0);
+        gridPaneIdeal.add(buttonEnergyMinimizationIdeal, 2, 1);
+        gridPaneIdeal.add(buttonEnergyMinimizationStressIdeal, 2, 2);
+        gridPaneIdeal.add(labelStressIdeal, 3, 0);
+        gridPaneIdeal.add(textStressIdeal, 4, 0);
+        gridPaneIdeal.add(labelCoefficientIdeal, 3, 1);
+        gridPaneIdeal.add(textFieldCoefficientIdeal,4,1);
+        gridPaneIdeal.add(labelEnergyIdeal, 3, 2);
+        gridPaneIdeal.add(labelEnergyValueIdeal, 4, 2);
+        gridPaneIdeal.add(buttonDiagramIdeal, 5, 0, 1, 3);
+
+        PerspectiveCamera camera3DIdeal = new PerspectiveCamera(true);
+        camera3DIdeal.setNearClip(0.1);
+        camera3DIdeal.setFarClip(100000.0);
+        camera3DIdeal.setFieldOfView(20);
+        camera3DIdeal.getTransforms().addAll(rotateX, rotateY, new Translate(0, 0, -3000));
+
+        Group group3DIdeal = new Group(new TubeView(tube, Color.YELLOW).asNode());
+        SubScene subScene3DIdeal = new SubScene(group3DIdeal, 650, 550, true, SceneAntialiasing.BALANCED);
+        subScene3DIdeal.setFill(Color.rgb(129, 129, 129));
+        subScene3DIdeal.setCamera(camera3DIdeal);
+        var root3dIdeal = new Group(subScene3DIdeal);
+
+        PerspectiveCamera camera2DIdeal = new PerspectiveCamera(true);
+        camera2DIdeal.setNearClip(0.1);
+        camera2DIdeal.setFarClip(10000.0);
+        camera2DIdeal.setFieldOfView(20);
+        camera2DIdeal.getTransforms().addAll(new Translate(6700, 0, -6000));
+
+        Group group2DIdeal = new Group();
+        SubScene subScene2DIdeal = new SubScene(group2DIdeal, 4500, 640, true, SceneAntialiasing.BALANCED);
+        subScene2DIdeal.setFill(Color.rgb(245, 245, 176));
+        subScene2DIdeal.setCamera(camera2DIdeal);
+        var root2dIdeal = new Group(subScene2DIdeal);
+
+        initMouseControl(subScene3DIdeal, stage, camera3DIdeal);
+        initMouseControl2D(subScene2DIdeal, stage, camera2DIdeal);
+
+        gridPaneIdeal.add(root2dIdeal, 6, 0, 1, 4);
+        gridPaneIdeal.add(root3dIdeal, 0, 3, 6, 1);
+        GridPane.setHalignment(root3dIdeal, HPos.CENTER);
+        GridPane.setValignment(root3dIdeal, VPos.CENTER);
+        GridPane.setHalignment(root2dIdeal, HPos.CENTER);
+        GridPane.setValignment(root2dIdeal, VPos.CENTER);
+
+        buttonEnterIdeal.setOnAction(e -> {
+            int n = Integer.parseInt(textFieldParameterN.getText());
+            int m = Integer.parseInt(textFieldParameterM.getText());
+            GenerationIdeal generationIdeal = new GenerationIdeal(60,60,70,n,m,tube);
+            ObservableList<Particle> particles = generationIdeal.ParticlesGeneration(particlesList);
+            Mapping mapping = new Mapping(group3DIdeal, group2DIdeal, tube, particles);
+            mapping.MappingParticle();
+            mapping.MappingParticle2D();
+            labelNumberChange.setText(String.valueOf(particles.size()));
+            labelEnergyValueIdeal.setText(String.valueOf(energy(particles,particles.size(),3,tube.getHeight())));
+        });
+
+        buttonEnergyMinimizationIdeal.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
+                Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueRandom, coefficient);
+            }
+        });
+
+        buttonEnergyMinimizationIdeal.setOnAction(e -> {
+            double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
+            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueRandom, coefficient);
+        });
+
+        buttonEnergyMinimizationStressIdeal.setOnAction(e -> {
+            double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
+            double stress = Double.parseDouble(textStressIdeal.getText());
+            new StressMinimization(particlesList, tube, stress).StressNewCoordinatesOfParticle();
+            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueRandom,coefficient);
+        });
+
+        var scene = new Scene(menu, WIDTH, HEIGHT);
         stage.setScene(scene);
         stage.show();
         stage.setTitle("NanoTube Student Project");
     }
 
-    private void Min(Stage stage, Button buttonDiagram, Tube tube, Group group3D, Group group2D, ObservableList<Particle> particlesList, Label label) {
-        Minimization minimization = new Minimization(particlesList,2,tube);
+    private void Min(Tube tube, Group group3D, Group group2D, ObservableList<Particle> particlesList,
+                     Label label, double coefficient) {
+        Minimization minimization = new Minimization(particlesList, 2, tube, coefficient);
         ObservableList<Particle> list = minimization.minimization();
-        Mapping mapping = new Mapping(group3D, group2D ,tube,list);
+        Mapping mapping = new Mapping(group3D, group2D, tube, list);
         mapping.MappingParticle();
         mapping.MappingParticle2D();
-//        buttonDiagram.setOnAction(actionEvent -> {
-//            Chart(stage,"Step","E","Minimization Process for Energy", "Diagram for Energy",400,600, minimization.getArrayEnergy());
-//            Chart(stage,"Step","k","Minimization Process for k", "Diagram for k",-300,-100, minimization.getArrayCoefficient());
-//        });
         label.setText(String.valueOf(minimization.energyOfSystem(list)));
     }
 
@@ -215,7 +342,6 @@ public class NanoTube extends Application {
         launch();
     }
 
-
     private void initMouseControl2D(SubScene scene, Stage stage, Camera camera) {
         scene.setOnMousePressed(event -> {
             anchorX = event.getSceneX();
@@ -225,15 +351,15 @@ public class NanoTube extends Application {
             double dx = (anchorX - event.getSceneX());
             double dy = (anchorY - event.getSceneY());
             if (event.isPrimaryButtonDown()) {
-                camera.getTransforms().add(new Translate(camera.getTranslateX()+dx/4,0,0));
-                camera.getTransforms().add(new Translate(0,camera.getTranslateY()+dy/4,0));
+                camera.getTransforms().add(new Translate(camera.getTranslateX() + dx / 4, 0, 0));
+                camera.getTransforms().add(new Translate(0, camera.getTranslateY() + dy / 4, 0));
             }
             anchorX = event.getSceneX();
             anchorY = event.getSceneY();
         });
-        stage.addEventHandler(ScrollEvent.SCROLL, event -> {
-            camera.getTransforms().add(new Translate(0,0,camera.getTranslateZ()+ event.getDeltaY()));
-        });
+        stage.addEventHandler(ScrollEvent.SCROLL,
+                event -> camera.getTransforms().add(
+                        new Translate(0, 0, camera.getTranslateZ() + event.getDeltaY())));
     }
 
     private void initMouseControl(SubScene scene, Stage stage, Camera camera) {
@@ -246,46 +372,13 @@ public class NanoTube extends Application {
             double dy = (anchorY - event.getSceneY());
             if (event.isPrimaryButtonDown()) {
                 rotateX.setAngle(rotateX.getAngle() -
-                        (dy /RADIUS  * 360) * (Math.PI / 180));
+                        (dy / RADIUS * 360) * (Math.PI / 180));
                 rotateY.setAngle(rotateY.getAngle() -
-                        (dx /RADIUS * -360) * (Math.PI / 180));
+                        (dx / RADIUS * -360) * (Math.PI / 180));
             }
             anchorX = event.getSceneX();
             anchorY = event.getSceneY();
         });
-        stage.addEventHandler(ScrollEvent.SCROLL, event -> {
-            camera.getTransforms().add(new Translate(0,0,camera.getTranslateZ()+ event.getDeltaY()));
-        });
-    }
-
-    private void Chart (Stage stage, String x, String y, String title, String titleDiagram, int getX, int getY, ArrayList<Double> array) {
-        final NumberAxis xAxis = new NumberAxis();
-        final NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel(y);
-        xAxis.setLabel(x);
-
-        final LineChart<Number,Number> lineChart = new LineChart<Number,Number>(xAxis,yAxis);
-        lineChart.setTitle(title);
-
-        XYChart.Series series = new XYChart.Series();
-        series.setName(y);
-
-        if (array.size() <= 5000) {
-            for (int i = 0; i < array.size(); i++) {
-                series.getData().add(new XYChart.Data(i, array.get(i)));
-            }
-        } else {
-            for (int i = 0; i < 5000; i++) {
-                series.getData().add(new XYChart.Data(i, array.get(i)));
-            }
-        }
-        Scene scene = new Scene(lineChart, 700, 600);
-        lineChart.getData().add(series);
-        Stage WindowDiagram = new Stage();
-        WindowDiagram.setTitle(titleDiagram);
-        WindowDiagram.setScene(scene);
-        WindowDiagram.setX(stage.getX() + getX);
-        WindowDiagram.setY(stage.getY() + getY);
-        WindowDiagram.show();
+        stage.addEventHandler(ScrollEvent.SCROLL, event -> camera.getTransforms().add(new Translate(0, 0, camera.getTranslateZ() + event.getDeltaY())));
     }
 }

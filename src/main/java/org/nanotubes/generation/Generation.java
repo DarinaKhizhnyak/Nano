@@ -5,13 +5,12 @@ import javafx.scene.paint.Color;
 
 import org.nanotubes.generation.Geom.Tube;
 import org.nanotubes.generation.PoissonDisk.PoissonDiskIn2D;
-import org.nanotubes.generation.PoissonDisk.Vector2DDouble;
+import org.nanotubes.generation.Geom.Vector2DDouble;
 import org.nanotubes.generation.Geom.Particle;
 
 import java.util.Collections;
 import java.util.List;
 
-import static java.lang.Math.pow;
 import static javafx.scene.paint.Color.*;
 
 /**
@@ -88,12 +87,23 @@ public class Generation {
         double Energy = 0;
         for (int i = 0; i < numberOfParticle; i++) {
             for (int j = 0; j < numberOfParticle; j++) {
+                Particle particleJ = new Particle(coordinates.get(j).getRadius(),coordinates.get(j).getColor(),
+                        coordinates.get(j).getX(),coordinates.get(j).getY(),coordinates.get(j).getZ(),
+                        coordinates.get(j).getNumber());
                 if (i != j) {
-                    Energy += 1/pow(coordinates.get(i).distance(coordinates.get(j)), degree);
+                    if (Math.abs(coordinates.get(i).getZ()-particleJ.getZ()) > heightTube/2) {
+                        if (particleJ.getZ() < 0.0) {
+                            particleJ.setZ(particleJ.getZ() + heightTube);
+                            Energy += 1/Math.pow(coordinates.get(i).distance(particleJ),degree);
+                        } else if (particleJ.getZ() > 0.0) {
+                            particleJ.setZ(particleJ.getZ() - heightTube);
+                            Energy += 1/Math.pow(coordinates.get(i).distance(particleJ),degree);
+                        }
+                    } else {
+                        Energy += 1/Math.pow(coordinates.get(i).distance(particleJ),degree);
+                    }
                 }
             }
-            Energy += 1 / pow(coordinates.get(i).getZ() - heightTube / 2, degree) +
-                    1 / pow(coordinates.get(i).getZ() + heightTube / 2, degree);
         }
         return Energy;
     }
