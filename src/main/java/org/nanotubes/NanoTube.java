@@ -302,20 +302,20 @@ public class NanoTube extends Application {
         buttonEnergyMinimizationIdeal.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
-                Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueRandom, coefficient);
+                Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal, coefficient);
             }
         });
 
         buttonEnergyMinimizationIdeal.setOnAction(e -> {
             double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
-            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueRandom, coefficient);
+            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal, coefficient);
         });
 
         buttonEnergyMinimizationStressIdeal.setOnAction(e -> {
             double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
             double stress = Double.parseDouble(textStressIdeal.getText());
             new StressMinimization(particlesList, tube, stress).StressNewCoordinatesOfParticle();
-            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueRandom,coefficient);
+            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal,coefficient);
         });
 
         var scene = new Scene(menu, WIDTH, HEIGHT);
