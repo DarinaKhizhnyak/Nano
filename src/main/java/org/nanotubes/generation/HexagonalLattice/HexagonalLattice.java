@@ -4,6 +4,7 @@ import org.nanotubes.generation.Geom.Vector2DDouble;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class HexagonalLattice {
     private final int CoefficientI;
@@ -46,7 +47,7 @@ public class HexagonalLattice {
         return Math.atan(Math.sqrt(3) * CoefficientM/ (CoefficientM + 2 * CoefficientN));
     }
 
-    public List <Vector2DDouble> TransformationHexagonalLattice() {
+    private List <Vector2DDouble> TransformationHexagonalLattice() {
         List<Vector2DDouble> transformationVector2DDoubles = new LinkedList<>();
         List<Vector2DDouble> vector2DDoubles = CreatHexagonalLattice();
         for (Vector2DDouble vector2DDouble : vector2DDoubles) {
@@ -59,17 +60,30 @@ public class HexagonalLattice {
         return transformationVector2DDoubles;
     }
 
+    public int NumberOfParticle() {
+        return 2*(CoefficientM*CoefficientM+CoefficientN*CoefficientN+CoefficientN*CoefficientM)/GreatestCommonDivisorDr();
+    }
+
     public List <Vector2DDouble> Particles() {
         List<Vector2DDouble> particles = new LinkedList<>();
         List<Vector2DDouble> transformationVector2DDoubles = TransformationHexagonalLattice();
         for (Vector2DDouble vector2DDouble : transformationVector2DDoubles) {
-            double x = vector2DDouble.getX();
-            double y = vector2DDouble.getY();
-            if ((x > 0.0) && (x <= ChiralityVector()) && (y > 0.0) && (y <= TranslationVector())) {
+            double x = round(vector2DDouble.getX(),4);
+            double y = round(vector2DDouble.getY(),4);
+            if ((x >= 0.0) && (x < ChiralityVector()) && (y >= 0.0) && (y < TranslationVector())) {
                 particles.add(vector2DDouble);
             }
         }
-        return particles;
+        return particles.stream().distinct().collect(Collectors.toList());
+    }
+
+    private static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
     }
 
     private int GreatestCommonDivisor(int a, int b) {

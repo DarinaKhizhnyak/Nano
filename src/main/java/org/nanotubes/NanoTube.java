@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-import javafx.event.ActionEvent;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 
@@ -24,16 +23,18 @@ import javafx.stage.Stage;
 import org.nanotubes.generation.Generation;
 import org.nanotubes.generation.GenerationIdeal;
 import org.nanotubes.generation.Geom.Tube;
-import org.nanotubes.generation.Geom.Vector2DDouble;
-import org.nanotubes.generation.HexagonalLattice.HexagonalLattice;
 import org.nanotubes.generation.Mapping.TubeView;
 import org.nanotubes.generation.Mapping.Mapping;
 import org.nanotubes.minimization.Minimization;
 import org.nanotubes.generation.Geom.Particle;
 import org.nanotubes.minimization.StressMinimization;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.nanotubes.generation.Generation.energy;
 
@@ -100,6 +101,7 @@ public class NanoTube extends Application {
         var labelEnergyIdeal = new Label("Energy");
         var labelEnergyValueRandom = new Label("0");
         var labelEnergyValueIdeal = new Label("0");
+        var labelStressHeightTube = new Label("0");
         var textFieldRadius = new TextField();
         var textFieldHeight = new TextField();
         var textFieldParameterM = new TextField();
@@ -112,7 +114,7 @@ public class NanoTube extends Application {
 
         Arrays.asList(labelRadius, labelHeight, labelNumberRandom, labelStressRandom, labelEnergyRandom,
                 labelCoefficientRandom, labelParameterM, labelParameterN, labelNumberIdeal, labelCoefficientIdeal,
-                labelEnergyIdeal, labelStressIdeal).forEach(label -> {
+                labelEnergyIdeal, labelStressIdeal, labelStressHeightTube).forEach(label -> {
             GridPane.setHalignment(label, HPos.CENTER);
             GridPane.setValignment(label, VPos.CENTER);
         });
@@ -194,36 +196,47 @@ public class NanoTube extends Application {
         GridPane.setValignment(root2dRandom, VPos.CENTER);
 
         final ObservableList<Particle> particlesList = FXCollections.observableArrayList();
+        final ArrayList<Double> outputEnergy = new ArrayList<>();
+        final ArrayList<Double> outputHeight = new ArrayList<>();
 
         buttonEnterRandom.setOnAction(e -> {
+            outputHeight.clear();
+            outputEnergy.clear();
             int n = Integer.parseInt(textNumber.getText());
             tube.setHeight(Double.parseDouble(textFieldHeight.getText()));
             tube.setRadius(Double.parseDouble(textFieldRadius.getText()));
-            Generation generation = new Generation(tube, n, 2);
+            Generation generation = new Generation(tube, n, 6);
             ObservableList<Particle> particles = generation.ParticlesGeneration(particlesList);
             Mapping mapping = new Mapping(group3DRandom, group2DRandom, tube, particles);
             mapping.MappingParticle();
             mapping.MappingParticle2D();
-            labelEnergyValueRandom.setText(String.valueOf(generation.getEnergy(particles)));
+            double energy = generation.getEnergy(particles);
+            labelEnergyValueRandom.setText(String.valueOf(energy));
+            outputEnergy.add(energy);
+            outputHeight.add(tube.getHeight());
         });
 
         buttonEnergyMinimizationRandom.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 double coefficient = Double.parseDouble(textFieldCoefficientRandom.getText());
-                Min(tube, group3DRandom, group2DRandom, particlesList, labelEnergyValueRandom, coefficient);
+                Min(tube, group3DRandom, group2DRandom, particlesList, labelEnergyValueRandom, coefficient,
+                        outputEnergy,outputHeight);
             }
         });
 
         buttonEnergyMinimizationRandom.setOnAction(event -> {
             double coefficient = Double.parseDouble(textFieldCoefficientRandom.getText());
-            Min(tube, group3DRandom, group2DRandom, particlesList, labelEnergyValueRandom,coefficient);
+            Min(tube, group3DRandom, group2DRandom, particlesList, labelEnergyValueRandom,coefficient,
+                    outputEnergy,outputHeight);
         });
 
         buttonEnergyMinimizationStressRandom.setOnAction(e -> {
             double stress = Double.parseDouble(textStressRandom.getText());
             double coefficient = Double.parseDouble(textFieldCoefficientRandom.getText());
             new StressMinimization(particlesList, tube, stress).StressNewCoordinatesOfParticle();
-            Min(tube, group3DRandom, group2DRandom, particlesList, labelEnergyValueRandom, coefficient);
+            Min(tube, group3DRandom, group2DRandom, particlesList, labelEnergyValueRandom, coefficient,
+                    outputEnergy,outputHeight);
+            textFieldHeight.setText(String.valueOf(tube.getHeight()));
         });
 
         GridPane gridPaneIdeal = new GridPane();
@@ -251,7 +264,8 @@ public class NanoTube extends Application {
         gridPaneIdeal.add(textFieldCoefficientIdeal,4,1);
         gridPaneIdeal.add(labelEnergyIdeal, 3, 2);
         gridPaneIdeal.add(labelEnergyValueIdeal, 4, 2);
-        gridPaneIdeal.add(buttonDiagramIdeal, 5, 0, 1, 3);
+        gridPaneIdeal.add(labelStressHeightTube,5,0);
+        gridPaneIdeal.add(buttonDiagramIdeal, 5, 1, 1, 2);
 
         PerspectiveCamera camera3DIdeal = new PerspectiveCamera(true);
         camera3DIdeal.setNearClip(0.1);
@@ -260,6 +274,7 @@ public class NanoTube extends Application {
         camera3DIdeal.getTransforms().addAll(rotateX, rotateY, new Translate(0, 0, -3000));
 
         Group group3DIdeal = new Group(new TubeView(tube, Color.YELLOW).asNode());
+        labelStressHeightTube.setText(String.valueOf(tube.getHeight()));
         SubScene subScene3DIdeal = new SubScene(group3DIdeal, 650, 550, true, SceneAntialiasing.BALANCED);
         subScene3DIdeal.setFill(Color.rgb(129, 129, 129));
         subScene3DIdeal.setCamera(camera3DIdeal);
@@ -288,6 +303,8 @@ public class NanoTube extends Application {
         GridPane.setValignment(root2dIdeal, VPos.CENTER);
 
         buttonEnterIdeal.setOnAction(e -> {
+            outputHeight.clear();
+            outputEnergy.clear();
             int n = Integer.parseInt(textFieldParameterN.getText());
             int m = Integer.parseInt(textFieldParameterM.getText());
             GenerationIdeal generationIdeal = new GenerationIdeal(60,60,70,n,m,tube);
@@ -295,27 +312,65 @@ public class NanoTube extends Application {
             Mapping mapping = new Mapping(group3DIdeal, group2DIdeal, tube, particles);
             mapping.MappingParticle();
             mapping.MappingParticle2D();
-            labelNumberChange.setText(String.valueOf(particles.size()));
-            labelEnergyValueIdeal.setText(String.valueOf(energy(particles,particles.size(),3,tube.getHeight())));
+            double energy = energy(particles,particles.size(),6,tube.getHeight());
+            labelNumberChange.setText(String.valueOf(generationIdeal.Number()));
+            labelEnergyValueIdeal.setText(String.valueOf(energy));
+            labelStressHeightTube.setText(String.valueOf(round(tube.getHeight(), 2)));
+            outputEnergy.add(energy);
+            outputHeight.add(tube.getHeight());
         });
 
         buttonEnergyMinimizationIdeal.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) {
                 double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
-                Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal, coefficient);
+                Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal, coefficient,
+                        outputEnergy,outputHeight);
             }
         });
 
         buttonEnergyMinimizationIdeal.setOnAction(e -> {
             double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
-            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal, coefficient);
+            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal, coefficient,
+                    outputEnergy,outputHeight);
         });
 
         buttonEnergyMinimizationStressIdeal.setOnAction(e -> {
             double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
             double stress = Double.parseDouble(textStressIdeal.getText());
             new StressMinimization(particlesList, tube, stress).StressNewCoordinatesOfParticle();
-            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal,coefficient);
+            labelStressHeightTube.setText(String.valueOf(round(tube.getHeight(), 2)));
+            Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal,coefficient,
+                    outputEnergy,outputHeight);
+        });
+
+        buttonEnergyMinimizationStressIdeal.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                double coefficient = Double.parseDouble(textFieldCoefficientIdeal.getText());
+                double stress = Double.parseDouble(textStressIdeal.getText());
+                new StressMinimization(particlesList, tube, stress).StressNewCoordinatesOfParticle();
+                labelStressHeightTube.setText(String.valueOf(round(tube.getHeight(), 2)));
+                Min(tube, group3DIdeal, group2DIdeal, particlesList, labelEnergyValueIdeal,coefficient,
+                        outputEnergy,outputHeight);
+            }
+        });
+
+        buttonDiagramIdeal.setOnAction(e-> {
+            String n = textFieldParameterN.getText();
+            String m = textFieldParameterM.getText();
+            try {
+                DataOutputStream writer = new DataOutputStream(new BufferedOutputStream(
+                        new FileOutputStream("E:\\outputIdeal"+n+m+".dat")));
+                for (int i = 0; i < outputEnergy.size(); i++) {
+                    String energy = String.valueOf(outputEnergy.get(i));
+                    String height = String.valueOf(outputHeight.get(i));
+                    String string = "\n" + height + " " + energy;
+                    writer.write(string.getBytes());
+                }
+                writer.flush();
+                writer.close();
+            } catch (IOException exception) {
+                throw new RuntimeException(exception);
+            }
         });
 
         var scene = new Scene(menu, WIDTH, HEIGHT);
@@ -325,13 +380,16 @@ public class NanoTube extends Application {
     }
 
     private void Min(Tube tube, Group group3D, Group group2D, ObservableList<Particle> particlesList,
-                     Label label, double coefficient) {
-        Minimization minimization = new Minimization(particlesList, 2, tube, coefficient);
+                     Label label, double coefficient, ArrayList<Double> outputEnergy, ArrayList<Double> outputHeight) {
+        Minimization minimization = new Minimization(particlesList, 6, tube, coefficient);
         ObservableList<Particle> list = minimization.minimization();
         Mapping mapping = new Mapping(group3D, group2D, tube, list);
         mapping.MappingParticle();
         mapping.MappingParticle2D();
-        label.setText(String.valueOf(minimization.energyOfSystem(list)));
+        double energy = minimization.energyOfSystem(list);
+        label.setText(String.valueOf(energy));
+        outputEnergy.add(energy);
+        outputHeight.add(tube.getHeight());
     }
 
     /**
@@ -380,5 +438,14 @@ public class NanoTube extends Application {
             anchorY = event.getSceneY();
         });
         stage.addEventHandler(ScrollEvent.SCROLL, event -> camera.getTransforms().add(new Translate(0, 0, camera.getTranslateZ() + event.getDeltaY())));
+    }
+
+    private static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        long factor = (long) Math.pow(10, places);
+        value = value * factor;
+        long tmp = Math.round(value);
+        return (double) tmp / factor;
     }
 }
