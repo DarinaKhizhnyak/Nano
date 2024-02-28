@@ -1,6 +1,6 @@
 package org.nanotubes.generation.HexagonalLattice;
 
-import org.nanotubes.generation.Geom.Vector2DDouble;
+import org.nanotubes.Geom.Vector2DDouble;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -68,8 +68,8 @@ public class HexagonalLattice {
         List<Vector2DDouble> particles = new LinkedList<>();
         List<Vector2DDouble> transformationVector2DDoubles = TransformationHexagonalLattice();
         for (Vector2DDouble vector2DDouble : transformationVector2DDoubles) {
-            double x = round(vector2DDouble.getX(),4);
-            double y = round(vector2DDouble.getY(),4);
+            double x = round(vector2DDouble.getX(),6);
+            double y = round(vector2DDouble.getY(),6);
             if ((x >= 0.0) && (x < ChiralityVector()) && (y >= 0.0) && (y < TranslationVector())) {
                 particles.add(vector2DDouble);
             }

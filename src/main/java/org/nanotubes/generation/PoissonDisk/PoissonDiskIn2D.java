@@ -1,7 +1,7 @@
 package org.nanotubes.generation.PoissonDisk;
 
-import org.nanotubes.generation.Geom.Vector2DDouble;
-import org.nanotubes.generation.Geom.Vector2DInt;
+import org.nanotubes.Geom.Vector2DDouble;
+import org.nanotubes.Geom.Vector2DInt;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -10,7 +10,8 @@ import java.util.Random;
 import static java.lang.Math.sqrt;
 
 /**
- * класс использующий алгоритм выборки частиц при помощи диска Пуассона в произвольных размерах Роберта Бридсона, а также используется алгоритм авторства Herman Tulleken
+ * класс использующий алгоритм выборки частиц при помощи диска Пуассона в произвольных размерах Роберта Бридсона,
+ * а также используется алгоритм авторства Herman Tulleken
  */
 public class PoissonDiskIn2D {
     /**

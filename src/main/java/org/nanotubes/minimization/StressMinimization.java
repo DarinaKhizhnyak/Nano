@@ -1,8 +1,8 @@
 package org.nanotubes.minimization;
 
 import javafx.collections.ObservableList;
-import org.nanotubes.generation.Geom.Particle;
-import org.nanotubes.generation.Geom.Tube;
+import org.nanotubes.Geom.Particle;
+import org.nanotubes.Geom.Tube;
 
 public class StressMinimization {
     private final ObservableList <Particle> particles;

@@ -3,10 +3,10 @@ package org.nanotubes.generation;
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
 
-import org.nanotubes.generation.Geom.Tube;
+import org.nanotubes.Geom.Tube;
 import org.nanotubes.generation.PoissonDisk.PoissonDiskIn2D;
-import org.nanotubes.generation.Geom.Vector2DDouble;
-import org.nanotubes.generation.Geom.Particle;
+import org.nanotubes.Geom.Vector2DDouble;
+import org.nanotubes.Geom.Particle;
 
 import java.util.Collections;
 import java.util.List;

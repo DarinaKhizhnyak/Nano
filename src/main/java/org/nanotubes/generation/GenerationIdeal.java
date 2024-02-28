@@ -2,9 +2,9 @@ package org.nanotubes.generation;
 
 import javafx.collections.ObservableList;
 import javafx.scene.paint.Color;
-import org.nanotubes.generation.Geom.Particle;
-import org.nanotubes.generation.Geom.Tube;
-import org.nanotubes.generation.Geom.Vector2DDouble;
+import org.nanotubes.Geom.Particle;
+import org.nanotubes.Geom.Tube;
+import org.nanotubes.Geom.Vector2DDouble;
 import org.nanotubes.generation.HexagonalLattice.HexagonalLattice;
 
 import java.util.List;

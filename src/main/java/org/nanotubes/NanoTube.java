@@ -22,11 +22,11 @@ import javafx.stage.Stage;
 
 import org.nanotubes.generation.Generation;
 import org.nanotubes.generation.GenerationIdeal;
-import org.nanotubes.generation.Geom.Tube;
-import org.nanotubes.generation.Mapping.TubeView;
-import org.nanotubes.generation.Mapping.Mapping;
+import org.nanotubes.Geom.Tube;
+import org.nanotubes.Mapping.TubeView;
+import org.nanotubes.Mapping.Mapping;
 import org.nanotubes.minimization.Minimization;
-import org.nanotubes.generation.Geom.Particle;
+import org.nanotubes.Geom.Particle;
 import org.nanotubes.minimization.StressMinimization;
 
 import java.io.BufferedOutputStream;
@@ -312,6 +312,7 @@ public class NanoTube extends Application {
             Mapping mapping = new Mapping(group3DIdeal, group2DIdeal, tube, particles);
             mapping.MappingParticle();
             mapping.MappingParticle2D();
+            mapping.MappingTriangulation();
             double energy = energy(particles,particles.size(),6,tube.getHeight());
             labelNumberChange.setText(String.valueOf(generationIdeal.Number()));
             labelEnergyValueIdeal.setText(String.valueOf(energy));
@@ -384,12 +385,13 @@ public class NanoTube extends Application {
         Minimization minimization = new Minimization(particlesList, 6, tube, coefficient);
         ObservableList<Particle> list = minimization.minimization();
         Mapping mapping = new Mapping(group3D, group2D, tube, list);
-        mapping.MappingParticle();
-        mapping.MappingParticle2D();
         double energy = minimization.energyOfSystem(list);
-        label.setText(String.valueOf(energy));
         outputEnergy.add(energy);
         outputHeight.add(tube.getHeight());
+        mapping.MappingParticle();
+        mapping.MappingParticle2D();
+        mapping.MappingTriangulation();
+        label.setText(String.valueOf(energy));
     }
 
     /**
